@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import ProgressHUD
 
 class SignInViewController: UIViewController {
 
@@ -14,7 +15,7 @@ class SignInViewController: UIViewController {
     @IBOutlet weak var emailTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
     @IBOutlet weak var signInButton: UIButton!
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -24,6 +25,40 @@ class SignInViewController: UIViewController {
         setUpView()
 
     }
+
+    @IBAction func signInDidTapped(_ sender: Any) {
+        self.view.endEditing(true)
+        self.validateFields()
+        self.signIn {
+            // switch view
+        } onError: { errorMessage in
+            ProgressHUD.error(errorMessage)
+        }
+    }
+}
+
+extension SignInViewController {
+    func signIn(onSuccess: @escaping() -> Void, onError: @escaping(_ errorMessage: String) -> Void) {
+        ProgressHUD.show()
+        Api.User.signIn(email: self.emailTextField.text!, password: self.passwordTextField.text!) {
+            ProgressHUD.dismiss()
+            onSuccess()
+        } onError: { errorMessage in
+            onError(errorMessage)
+        }
+    }
+
+    func validateFields(){
+        guard let email = self.emailTextField.text, !email.isEmpty else {
+            ProgressHUD.error("Please enter an email")
+            return
+        }
+        guard let password = self.passwordTextField.text, !password.isEmpty else {
+            ProgressHUD.error("Please enter an password")
+            return
+        }
+    }
+
     func setUpNavigationBar() {
         navigationItem.title = "Sign In"
         navigationController?.navigationBar.prefersLargeTitles = true
@@ -49,3 +84,4 @@ class SignInViewController: UIViewController {
         signInButton.layer.cornerRadius = 10
     }
 }
+
